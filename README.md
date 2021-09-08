@@ -6,8 +6,8 @@
   - [What's different of the implemented papers:](#whats-different-of-the-implemented-papers)
   - [Future](#future)
 - [Results and trained models](#results-and-trained-models)
-- [NOTES](#notes)
 - [USAGE](#usage)
+- [NOTES](#notes)
 - [TODO](#todo)
 - [CITATION](#citation)
 - [Contact](#contact)
@@ -36,7 +36,7 @@ Trained with [VolSDF](https://arxiv.org/abs/2106.12052)@200k, with [NeRF++](http
 
 - Above: :rocket: **<u>volume rendering</u>** of the scene (**<u>novel view synthesis</u>**)
 
-- Below: extracted mesh from the learned implicit shape
+- Below: mesh extracted from the learned implicit shape
 
 | ![volsdf_nerf++_blended_norm_5c0d13_rgb&mesh_576x768_450_archimedean_spiral_400](media/volsdf_nerf++_blended_norm_5c0d13_rgb&mesh_576x768_450_archimedean_spiral_256.gif) |
 | :----------------------------------------------------------: |
@@ -47,8 +47,8 @@ Trained with [VolSDF](https://arxiv.org/abs/2106.12052)@200k, with [NeRF++](http
 Trained with [NeuS](https://arxiv.org/abs/2106.10689) @300k, with [NeRF++](https://github.com/Kai-46/nerfplusplus) as background.
 
 - Above: :rocket: **<u>volume rendering</u>** of the scene (**<u>novel view synthesis</u>**)
-- Middle: extracted normals from the learned implicit shape ($\nabla_{\mathbf{x}} s$)
-- Below: extracted mesh from the learned implicit shape
+- Middle: normals extracted from the learned implicit shape ($\nabla_{\mathbf{x}} s$)
+- Below: mesh extracted from the learned implicit shape
 
 | ![neus_55_nomask_new_rgb&normal&mesh_300x400_60_small_circle_256](media/DTU/neus/neus_55_nomask_new_rgb&normal&mesh_300x400_60_small_circle_256.gif) | ![neus_37_nomask_new_rgb&normal&mesh_300x400_60_small_circle_256](media/DTU/neus/neus_37_nomask_new_rgb&normal&mesh_300x400_60_small_circle_256.gif) | ![neus_65_nomask_new_rgb&normal&mesh_360x400_60_small_circle_256](media/DTU/neus/neus_65_nomask_new_rgb&normal&mesh_360x400_60_small_circle_256.gif) |
 | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
@@ -67,7 +67,7 @@ The overall topic of the implemented papers is multi-view surface and appearance
 
 | What's known / Ground Truth / Supervision                    | What's learned                      |
 | ------------------------------------------------------------ | ----------------------------------- |
-| **ONLY** Multi-view **posed RGB images**. (no mask, no GT mesh, nothing.) | 3D surface / shape<br>3D appearance |
+| **ONLY** Multi-view **posed RGB images**. (no masks, no depths, no GT mesh or pointclouds, nothing.) | 3D surface / shape<br>3D appearance |
 
 #### previous: surface rendering; now: volume rendering
 
@@ -81,8 +81,8 @@ The benefit of using volume rendering is that it diffuses gradients widely in sp
 
 | config:<br> [[click me]](configs/volsdf_nerfpp_blended.yaml) | @0 iters                        | @3k iters<br>@16 mins           | @10k iters<br> @1 hours         | @200k iters<br>@ 18.5 hours       |
 | ------------------------------------------------------------ | ------------------------------- | ------------------------------- | ------------------------------- | --------------------------------- |
-| Extracted mesh from learned shape                            | ![mesh_0k](media/mesh_0k.png)   | ![mesh_3k](media/mesh_3k.png)   | ![mesh_10k](media/mesh_10k.png) | ![mesh_200k](media/mesh_200k.png) |
-| Rendered view from learned appearance                        | ![00000000](media/00000000.png) | ![00003000](media/00003000.png) | ![00010000](media/00010000.png) | ![00200000](media/00200000.png)   |
+| Mesh extracted from the learned shape                        | ![mesh_0k](media/mesh_0k.png)   | ![mesh_3k](media/mesh_3k.png)   | ![mesh_10k](media/mesh_10k.png) | ![mesh_200k](media/mesh_200k.png) |
+| View rendered  from  the learned appearance                  | ![00000000](media/00000000.png) | ![00003000](media/00003000.png) | ![00010000](media/00010000.png) | ![00200000](media/00200000.png)   |
 
 
 
@@ -94,7 +94,7 @@ From another perspective, they change the original NeRF's shape representation (
 | ---------------------------- | ------------------------------------------------------------ |
 | Volume density               | [Occupancy net](https://arxiv.org/abs/1812.03828) (UNISURF) <br>[DeepSDF](https://arxiv.org/abs/1901.05103) (VolSDF/NeuS) |
 
-The biggest disadvantage of NeRF's shape representation is that it considers objects volume clouds, which actually does not guarantees an exact surface, since there is no constraint on the learned density. 
+The biggest disadvantage of NeRF's shape representation is that it considers objects as volume clouds, which actually does not guarantees an exact surface, since there is no constraint on the learned density. 
 
 Representing shapes with implicit surfaces can force the volume density to be associated with a exact surface. 
 
@@ -104,12 +104,12 @@ What's more, the association (or, the mapping function that maps implicit surfac
 | :----------------------------------------------------------: |
 | Demonstration of controllable mappings from sdf value to volume density value. @VolSDF |
 
-Hence, the training scheme can be roughly divided as follows (not discrete stages, continuously progressing instead):
+Hence, the training scheme of approaches in this repo can be roughly divided as follows (not discrete stages, continuously progressing instead):
 
-- at the earlier stage of learning shapes, the shape representation is more volume-like, taking into account of the more neighboring points along the ray for rendering colors. The network fast learns a roughly correct shape and appearance.
-- while in the later stage, the shape representation is more surface-like, almost only taking into account the exact intersected points of the ray with the surface. The network slowly learns the fine thin structures of shapes and fine details of appearance.
+- at the earlier stage of learning shapes, the shape representation is more volume-like, taking into account more neighboring points along the ray when rendering colors. The network fast learns a roughly correct shape and appearance.
+- while in the later stage, the shape representation is more surface-like, almost only taking into account the exact intersected point with the surface along the ray . The network slowly learns the fine thin structures of shapes and fine details of appearance.
 
-You can see that as the controlling parameter let narrower and narrower neighboring points being considered during volume rendering, the rendered results are almost equal to surface rendering. This is proved in [UNISURF](https://arxiv.org/abs/2104.10078), and also proved with results showed in the section [[docs/usage.md#use surface rendering instead of volume rendering]](docs/usage.md#pushpin-use-surface-rendering-instead-of-volume-rendering).
+You can see that as the controlling parameter let narrower and narrower neighboring points being considered during volume rendering, the rendered results are getting almost equivalent to surface rendering. This is proved in [UNISURF](https://arxiv.org/abs/2104.10078), and also proved with results showed in the section [[docs/usage.md#use surface rendering instead of volume rendering]](docs/usage.md#pushpin-use-surface-rendering-instead-of-volume-rendering).
 
 ![limit](media/limit.png)
 
@@ -127,7 +127,7 @@ You can see that as the controlling parameter let narrower and narrower neighbor
 
 Currently, the biggest problem of methods contained in this repo is that the view-dependent reflection effect is **baked** into the object's surface, similar with [IDR](https://github.com/lioryariv/idr), [NeRF](https://www.matthewtancik.com/nerf) and so on. In other words, if you place the learned object into a new scene with different ambient light settings, the rendering process will have no consideration of the new scene's light condition, and keeps the ambient light's reflection of the old trained scene with it.
 
-However, as the combination of implicit surface with NeRF has come true, ambient light and material decomposition can be easier for NeRF-based frameworks, since now shapes are represented by the underlying neural surface instead of volume densities.
+However, as the combination of implicit surface with NeRF has come true, ambient light and material decomposition can be much easier for NeRF-based frameworks, since now shapes are represented by the underlying neural surface instead of volume densities.
 
 
 
@@ -135,7 +135,7 @@ However, as the combination of implicit surface with NeRF has come true, ambient
 
 The trained models are stored in [[GoogleDrive]](https://drive.google.com/drive/folders/1B7y-nMFO9noVI0byU34yPTRtqqzMdMIQ?usp=sharing) / [[Baidu, code: `reco`]](https://pan.baidu.com/s/10g1IWwrGrpE--VJ5XLuRFw).
 
-For more visualization of the my trained results, see [[docs/trained_models_results.md]](docs/trained_models_results.md).
+For more visualization of more trained results, see [[docs/trained_models_results.md]](docs/trained_models_results.md).
 
 
 ## USAGE
@@ -234,7 +234,7 @@ See [[docs/usage.md]](docs/usage.md) for detailed usage documentation.
 
 ## Acknowledgement
 
-This repository modifies code or draw inspiration from:
+This repository modifies codes or draws inspiration from:
 
 - My another NeRF-- repo: https://github.com/ventusff/improved-nerfmm
 - https://github.com/Totoro97/NeuS
@@ -252,7 +252,8 @@ This repository modifies code or draw inspiration from:
 
 ## Contact
 
-If you have any problems, feel free to submit issues or contact Jianfei Guo(郭建非) `guojianfei [at] pjlab.org.cn`. PRs are also very welcome :smiley:.
+Feel free to submit issues or contact Jianfei Guo(郭建非) `guojianfei [at] pjlab.org.cn`.  
+PRs are also very welcome :smiley:
 
 ## We are hiring! 
 
