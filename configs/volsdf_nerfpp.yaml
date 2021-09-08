@@ -1,0 +1,66 @@
+expname: volsdf_nerf++_40
+
+# device_ids: [0]     # single gpu           ; run on specified GPU
+# device_ids: [1, 0]  # DP                   ; run on specified GPU
+device_ids: -1        # single GPU / DP / DDP; run on all available GPUs; 
+
+data:
+  batch_size: 1       # one batch, one image
+  data_dir: ./data/DTU/scan40
+  downscale: 1        # downscale image for training
+  scale_radius: 3.0   # scale the dataset's all camera to be within this radius
+  pin_memory: True
+
+  near: 0.0
+  far: 6.0  # NOTE: in volSDF，far = 2r=2*3=6.0
+
+  N_rays: 1024        # N_rays for training
+  val_rayschunk: 256  # N_rays for validation
+  val_downscale: 8    # downscale image for validation
+
+model:
+  framework: VolSDF
+  obj_bounding_radius: 3.0  # scene sphere, as in the VolSDF paper
+  
+  outside_scene: "nerf++"   # [builtin, nerf++]
+  max_upsample_iter: 5      # up sample iteratioms, as in the VolSDF paper
+
+  W_geometry_feature: 256
+
+  surface:
+    radius_init: 1.0        # in VolSDF supp B.3, unit sphere
+    D: 8
+    skips: [4]
+    embed_multires: 6
+
+  radiance:
+    D: 4
+    skips: []
+    embed_multires: -1
+    embed_multires_view: -1
+
+training:
+  speed_factor: 10.0
+  lr: 5.0e-4
+  w_eikonal: 0.1
+
+  log_root_dir: "logs"
+
+  num_iters: 100000 # 100k
+
+  # lr decay
+  scheduler:
+    type: warmupcosine
+    warmup_steps: 0 # unit: itertation steps
+
+  ckpt_file: null # will be read by python as None
+  ckpt_ignore_keys: []     # only change if you want to drop certain keys in the saved checkpionts.
+  ckpt_only_use_keys: null # only change if you want to only use certain keys in the saved checkpionts.
+
+  monitoring: tensorboard
+
+  i_save: 900       # unit: seconds
+  i_backup: 50000   # unit: itertation steps
+
+  i_val: 500
+  i_val_mesh: 10000

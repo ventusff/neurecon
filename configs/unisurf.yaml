@@ -1,0 +1,65 @@
+expname: unisurf_65
+
+# device_ids: [0]     # single gpu           ; run on specified GPU
+# device_ids: [1, 0]  # DP                   ; run on specified GPU
+device_ids: -1        # single GPU / DP / DDP; run on all available GPUs; 
+
+data:
+  batch_size: 1       # one batch, one image
+  data_dir: ./data/DTU/scan65
+  downscale: 1        # downscale image for training
+  pin_memory: True
+
+  N_rays: 1024        # N_rays for training
+  val_rayschunk: 256  # N_rays for validation
+  val_downscale: 8    # downscale image for validation
+
+model:
+  framework: UNISURF
+  tau: 0.5  # level surface
+  W_geometry_feature: 256
+  obj_bounding_radius: 4.0   # as in UNISURF supp II.1, 'four-times' larger region of interest
+
+  surface:
+    radius_init: 1.0
+    D: 8
+    skips: [4]
+    embed_multires: 6
+
+  radiance:
+    D: 4
+    skips: []
+    embed_multires: -1
+    embed_multires_view: -1
+
+training:
+  lr: 1.0e-4
+  w_reg: 0.01
+  perturb_surface_pts: 0.01 # for smoothing normals
+
+  delta_max: 1.0
+  delta_min: 0.05
+  delta_beta: 1.5e-5
+
+  log_root_dir: "./logs"    # the final expdir would be log_root_dir/expname
+
+  # lr decay
+  scheduler:
+    type: multistep
+    milestones: [200000, 400000] # [200k, 400k] # unit: itertation steps
+    gamma: 0.5
+
+  # num_epochs: 50000
+  num_iters: 450000 # 450k
+
+  ckpt_file: null # will be read by python as None
+  ckpt_ignore_keys: []     # only change if you want to drop certain keys in the saved checkpionts.
+  ckpt_only_use_keys: null # only change if you want to only use certain keys in the saved checkpionts.
+
+  monitoring: tensorboard
+
+  i_save: 900       # unit: seconds
+  i_backup: 50000   # unit: itertation steps
+
+  i_val: 1000
+  i_val_mesh: 20000
