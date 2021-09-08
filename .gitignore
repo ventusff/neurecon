@@ -1,0 +1,10 @@
+.spyproject/
+.vscode/
+logs/
+data/
+data
+dev_test/
+out/
+**/__pycache__
+*.pyc
+trained_models/
