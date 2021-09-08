@@ -250,7 +250,7 @@ python -m tools.render_view --num_views 60 --downscale 4 --config trained_models
 
 ### :pushpin: Use surface rendering, instead of volume rendering
 
-Since the underlying shape representation is a implicit surface, one can use surface rendering techniques to render the image. For each ray, on the point intersected with the surface will have contribution to its pixel color, instead of considering neighboring points as in volume rendering.
+Since the underlying shape representation is a implicit surface, one can use surface rendering techniques to render the image. For each ray, only the point intersected with the surface will have contribution to its pixel color, instead of considering neighboring points along the ray as in volume rendering.
 
 This will boost rendering speed **100x** faster using `sphere_tracing`.
 
