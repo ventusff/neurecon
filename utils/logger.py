@@ -99,7 +99,7 @@ class Logger(object):
             os.makedirs(outdir)
         if self.multi_process_logging:
             dist.barrier()
-        outfile = os.path.join(outdir, '{:8d}_{}.png'.format(it, self.rank))
+        outfile = os.path.join(outdir, '{:08d}_{}.png'.format(it, self.rank))
 
         # imgs = imgs / 2 + 0.5
         imgs = torchvision.utils.make_grid(imgs)
@@ -115,7 +115,7 @@ class Logger(object):
                 os.makedirs(outdir)
             if self.multi_process_logging:
                 dist.barrier()
-            outfile = os.path.join(outdir, '{:8d}_{}.png'.format(it, self.rank))
+            outfile = os.path.join(outdir, '{:08d}_{}.png'.format(it, self.rank))
 
             image_hwc = io_util.figure_to_image(fig)
             imageio.imwrite(outfile, image_hwc)

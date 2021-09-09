@@ -127,10 +127,11 @@ def main_function(args):
     scheduler = get_scheduler(args, optimizer, last_epoch=it-1)
     t0 = time.time()
     log.info('=> Start training..., it={}, lr={}, in {}'.format(it, optimizer.param_groups[0]['lr'], exp_dir))
+    end = (it >= args.training.num_iters)
     with tqdm(range(args.training.num_iters), disable=not is_master()) as pbar:
         if is_master():
             pbar.update(it)
-        while it <= args.training.num_iters:
+        while it <= args.training.num_iters and not end:
             try:
                 if args.ddp:
                     train_sampler.set_epoch(epoch_idx)
@@ -184,6 +185,7 @@ def main_function(args):
                                     show_progress=is_master())
 
                     if it >= args.training.num_iters:
+                        end = True
                         break
                     
                     #-------------------
@@ -280,14 +282,6 @@ def main_function(args):
     if is_master():
         checkpoint_io.save(filename='final_{:08d}.pt'.format(it), global_step=it, epoch_idx=epoch_idx)
         logger.save_stats('stats.p')
-        with torch.no_grad():
-            io_util.cond_mkdir(mesh_dir)
-            mesh_util.extract_mesh(
-                model.implicit_surface, 
-                filepath=os.path.join(mesh_dir, '{:08d}.ply'.format(it)),
-                volume_size=args.data.get('volume_size', 2.0),
-                show_progress=is_master())
-        
         log.info("Everything done.")
 
 if __name__ == "__main__":
