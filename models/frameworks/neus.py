@@ -254,9 +254,9 @@ def volume_render(
                     prev_z_vals, next_z_vals = _d[..., :-1], _d[..., 1:]
                     mid_sdf = (prev_sdf + next_sdf) * 0.5
                     dot_val = (next_sdf - prev_sdf) / (next_z_vals - prev_z_vals + 1e-5)
-                    prev_dot_val = torch.cat([torch.zeros_like(dot_val[..., :1], device=device), dot_val[..., :-1]], dim=-1)   # jianfei: prev 斜率，但是往后shift了一格
-                    dot_val = torch.stack([prev_dot_val, dot_val], dim=-1)  # jianfei: prev 斜率和 斜率拼一起
-                    dot_val, _ = torch.min(dot_val, dim=-1, keepdim=False)  # jianfei: 找到prev斜率和斜率里斜率最小的？（向前差分/向后差分，or 向前一段斜率/向后一段斜率）
+                    prev_dot_val = torch.cat([torch.zeros_like(dot_val[..., :1], device=device), dot_val[..., :-1]], dim=-1)   # jianfei: prev_slope, right shifted
+                    dot_val = torch.stack([prev_dot_val, dot_val], dim=-1)  # jianfei: concat prev_slope with slope
+                    dot_val, _ = torch.min(dot_val, dim=-1, keepdim=False)  # jianfei: find the minimum of prev_slope and current slope. (forward diff vs. backward diff., or the prev segment's slope vs. this segment's slope)
                     dot_val = dot_val.clamp(-10.0, 0.0)
                     
                     dist = (next_z_vals - prev_z_vals)

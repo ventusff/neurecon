@@ -76,7 +76,7 @@ def error_bound(d_vals, sdf, alpha, beta):
 
 def fine_sample(implicit_surface_fn, init_dvals, rays_o, rays_d, 
                 alpha_net, beta_net, far, 
-                eps=0.1, max_iter=5, max_bisection=10, final_N_importance=64,
+                eps=0.1, max_iter:int=5, max_bisection:int=10, final_N_importance:int=64, N_up:int=128,
                 perturb=True):
     """
     @ Section 3.4 in the paper.
@@ -154,8 +154,6 @@ def fine_sample(implicit_surface_fn, init_dvals, rays_o, rays_d,
         final_converge_flag[~mask] = True
         
         cur_N = init_dvals.shape[-1]
-        # N_up = init_dvals.shape[-1]
-        N_up = init_dvals.shape[-1] * 4
         it_algo = 0
         #---------------- 
         # start algorithm
@@ -422,13 +420,16 @@ def volume_render(
             # d_init = d_coarse
             
             # NOTE: setting denser d_init boost up up_sampling convergence without sacrificing much speed (since no grad here.)
-            _t = torch.linspace(0, 1, N_samples * 2).float().to(device)
+            _t = torch.linspace(0, 1, N_samples*4).float().to(device) # NOTE: you might want to use less samples for faster training.
             d_init = nears * (1 - _t) + fars * _t
             
-            d_fine, beta_map, iter_usage = fine_sample(model.forward_surface, d_init, rays_o, rays_d, 
-                                alpha_net=alpha, beta_net=beta, far=fars, 
-                                eps=epsilon, max_iter=max_upsample_steps, max_bisection=max_bisection_steps, 
-                                final_N_importance=N_importance, perturb=perturb)
+            d_fine, beta_map, iter_usage = fine_sample(
+                model.forward_surface, d_init, rays_o, rays_d, 
+                alpha_net=alpha, beta_net=beta, far=fars, 
+                eps=epsilon, max_iter=max_upsample_steps, max_bisection=max_bisection_steps, 
+                final_N_importance=N_importance, perturb=perturb, 
+                N_up=N_samples*4    # NOTE: you might want to use less samples for faster training.
+            )
 
         # ---------------
         # Gather points

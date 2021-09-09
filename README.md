@@ -158,7 +158,7 @@ See [[docs/usage.md]](docs/usage.md) for detailed usage documentation.
   - [x] Fix performance bug (camera inside surface after training) on some of the DTU instances.
 
 - VolSDF
-  - [ ] improve VolSDF's sampling performance
+  - [x] improve VolSDF's sampling performance
   - [ ] release more results
   
 - UNISURF
