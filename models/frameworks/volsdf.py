@@ -168,7 +168,9 @@ def fine_sample(implicit_surface_fn, init_dvals, rays_o, rays_d,
                 #---------------- 
                 # [Masked, N_up]
                 # NOTE: det = True should be more robust, forcing sampling points to be proportional with error bounds.
-                upsampled_d_vals_masked = rend_util.sample_pdf(d_vals[mask], bounds_masked, N_up, det=True)
+                # upsampled_d_vals_masked = rend_util.sample_pdf(d_vals[mask], bounds_masked, N_up, det=True)
+                # NOTE: when using det=True, the head and the tail d_vals will always be appended, hence removed using [..., 1:-1]
+                upsampled_d_vals_masked = rend_util.sample_pdf(d_vals[mask], bounds_masked, N_up+2, det=True)[..., 1:-1]
                 
                 # NOTE: for debugging
                 # import matplotlib.pyplot as plt
@@ -247,6 +249,7 @@ def fine_sample(implicit_surface_fn, init_dvals, rays_o, rays_d,
                     #---------------- 
                     bounds_masked = error_bound(d_vals_tmp, sdf_tmp, alpha[new_mask], beta[new_mask])
                     # bounds_masked = error_bound(d_vals_tmp, rays_d_tmp, sdf_tmp, alpha_net, beta[new_mask])
+                    bounds_masked = torch.clamp(bounds_masked, 0, 1e5)  # NOTE: prevent INF caused NANs
                     
                     # mask = net_bounds_max > eps   # NOTE: the same as the following
                     mask = new_mask
