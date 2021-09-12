@@ -145,9 +145,13 @@ def volume_render(
             model.implicit_surface, rays_o, rays_d, near=near, far=far, method=method, logit_tau=logit_tau, fill_inf=False, batched=batched)
 
         # [(B), N_rays]
-        d_pred_out = torch.clamp(d_pred_out, min=near, max=far)
-        d_upper = torch.clamp_max_(d_pred_out + interval, far)
-        d_lower = torch.clamp_min_(d_pred_out - interval, near) 
+        # d_pred_out = torch.clamp(d_pred_out, min=near, max=far)
+        # d_upper = torch.clamp_max(d_pred_out + interval, far)
+        # d_lower = torch.clamp_min(d_pred_out - interval, near)
+        # NOTE: compatible with torch<1.9
+        d_pred_out = torch.max(torch.min(d_pred_out, far), near)
+        d_upper = torch.min(d_pred_out + interval, far)
+        d_lower = torch.max(d_pred_out - interval, near) 
 
         # ----------------
         # stratified sampling in the interval: range from d_lower to d_upper
@@ -169,7 +173,8 @@ def volume_render(
         
         # TODO: decide which one is better for handling very small d_lower
         # OPTION_1: if d_lower is very small, set a min value
-        d_lower = torch.clamp_min_(d_lower, d_threshold)
+        # d_lower = torch.clamp_min_(d_lower, d_threshold)
+        d_lower = torch.max(d_lower, d_threshold)
         # OPTION_2: if d_lower is very small, sample on the whole ray
         # d_lower[d_lower < d_threshold] = far
 

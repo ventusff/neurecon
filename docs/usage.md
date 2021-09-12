@@ -124,7 +124,7 @@ logs
 │   ├── ckpts       # saved checkpoints
 │   ├── config.yaml # the training config
 │   ├── events      # tensorboard events
-│   ├── imgs        # validation image output    # NOTE: default validation image is 4 time down-sampled.
+│   ├── imgs        # validation image output    # NOTE: default validation image is 8 time down-sampled.
 │   └── stats.p     # saved scalars stats (lr, losses, value max/mins, etc.)
 ├── exp2
 └── ...
