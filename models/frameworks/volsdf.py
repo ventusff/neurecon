@@ -598,10 +598,13 @@ class Trainer(nn.Module):
         # [B, N_rays, N_pts, 3]
         nablas: torch.Tensor = extras['implicit_nablas']
         
-        # @ VolSDF section 3.5, "combine a SINGLE random uniform space point and a SINGLE point from \mathcal{S} for each pixel"
         # [B, N_rays, ]
-        _, _ind = extras['visibility_weights'].max(dim=-1)
+        #---------- OPTION1: just flatten and use all nablas
         # nablas = nablas.flatten(-3, -2)
+        
+        #---------- OPTION2: using only one point each ray: this may be what the paper suggests.
+        # @ VolSDF section 3.5, "combine a SINGLE random uniform space point and a SINGLE point from \mathcal{S} for each pixel"
+        _, _ind = extras['visibility_weights'][..., :nablas.shape[-2]].max(dim=-1)
         nablas = torch.gather(nablas, dim=-2, index=_ind[..., None, None].repeat([*(len(nablas.shape)-1)*[1], 3]))
         
         eik_bounding_box = args.model.obj_bounding_radius

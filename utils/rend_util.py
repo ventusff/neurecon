@@ -210,10 +210,12 @@ def get_sphere_intersection(ray_origins: torch.Tensor, ray_directions: torch.Ten
     return near, far, mask_intersect
 
 
-def get_dvals_from_radius(ray_origins: torch.Tensor, ray_directions: torch.Tensor, rs: torch.Tensor):
+def get_dvals_from_radius(ray_origins: torch.Tensor, ray_directions: torch.Tensor, rs: torch.Tensor, far_end=True):
     """
     ray_origins: camera center's coordinate
     ray_directions: camera rays' directions. already normalized.
+    rs: the distance to the origin
+    far_end: whether the point is on the far-end of the ray or on the near-end of the ray
     """
     rayso_norm_square = torch.sum(ray_origins**2, dim=-1, keepdim=True)
     # NOTE: (minus) the length of the line projected from [the line from camera to sphere center] to [the line of camera rays]
@@ -223,7 +225,11 @@ def get_dvals_from_radius(ray_origins: torch.Tensor, ray_directions: torch.Tenso
     assert (under_sqrt > 0).all()
     sqrt = torch.sqrt(under_sqrt)
     
-    d_vals = -ray_cam_dot + sqrt
+    if far_end:
+        d_vals = -ray_cam_dot + sqrt
+    else:
+        d_vals = -ray_cam_dot - sqrt
+        d_vals = torch.clamp_min(d_vals, 0.)
     
     return d_vals
 
